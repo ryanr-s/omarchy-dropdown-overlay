@@ -93,6 +93,15 @@ command -v jq >/dev/null || { echo "install.sh: jq not found" >&2; exit 1; }
 TOGGLE_SCRIPT="$PLUGIN_DIR/scripts/dropdown-toggle"
 chmod +x "$TOGGLE_SCRIPT"
 
+# Keep the omarchy-dropdown-install/-remove CLI on PATH, symlinked from this
+# plugin's bin/ so `omarchy plugin update` picks up fixes automatically.
+LOCAL_BIN="$HOME/.local/bin"
+mkdir -p "$LOCAL_BIN"
+for cli in "$PLUGIN_DIR"/bin/*; do
+  chmod +x "$cli"
+  ln -sf "$cli" "$LOCAL_BIN/$(basename "$cli")"
+done
+
 # Escape regex metacharacters so an auto-detected class (a literal string) is
 # matched exactly rather than interpreted as a pattern.
 regex_escape() {

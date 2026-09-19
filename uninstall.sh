@@ -34,6 +34,17 @@ else
   exit 1
 fi
 
+BINDINGS_LUA="$HYPR_DIR/bindings.lua"
+if [[ -f $BINDINGS_LUA ]] && ! grep -qF -- "$BEGIN_PREFIX" "$BINDINGS_LUA"; then
+  if [[ $ALL -eq 1 ]]; then
+    echo "No dropdown overlays are installed."
+    exit 0
+  else
+    echo "uninstall.sh: no dropdown overlay named '$NAME' is installed." >&2
+    exit 1
+  fi
+fi
+
 for file in "$HYPR_DIR/hyprland.lua" "$HYPR_DIR/bindings.lua"; do
   if [[ -f $file ]]; then
     awk -v begin_prefix="$BEGIN_PREFIX" -v end_prefix="-- END $PLUGIN_ID:" '

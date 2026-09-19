@@ -1,0 +1,71 @@
+#!/usr/bin/env bash
+# omarchy:summary=Add a Quake-style dropdown overlay for an app or web app
+# omarchy:args=[name key (--url <url>|--launch <command>) [install.sh options...]]
+#
+# Interactive front-end for the ryanrs.dropdown-overlay plugin's install.sh,
+# in the same spirit as omarchy-webapp-install: run it bare for prompts, or
+# pass args straight through for scripting.
+
+set -euo pipefail
+
+SELF="$(readlink -f "${BASH_SOURCE[0]}")"
+PLUGIN_DIR="$(cd "$(dirname "$SELF")/.." && pwd)"
+INSTALL_SH="$PLUGIN_DIR/install.sh"
+
+slug_from_text() {
+  printf '%s\n' "$1" | tr '[:upper:]' '[:lower:]' | sed 's/[^[:alnum:]]\+/-/g; s/^-//; s/-$//'
+}
+
+suggest_name_from_url() {
+  local host
+  host=$(sed -E 's#^[a-zA-Z]+://##; s#/.*##' <<<"$1")
+  slug_from_text "${host%%.*}"
+}
+
+suggest_name_from_launch() {
+  local first
+  first=$(awk '{print $1}' <<<"$1")
+  first=$(basename "$first")
+  slug_from_text "${first%.*}"
+}
+
+suggest_key_from_name() {
+  local initial
+  initial=$(tr '[:lower:]' '[:upper:]' <<<"${1:0:1}")
+  [[ $initial =~ ^[A-Z0-9]$ ]] && printf 'SUPER + SHIFT + %s' "$initial"
+}
+
+if (( $# == 0 )); then
+  echo -e "\e[32mLet's add a new dropdown overlay (a hotkey drops it over your screen; press again to hide it).\n\e[0m"
+
+  KIND=$(gum choose "Web app (URL)" "Other app (launch command)")
+
+  if [[ $KIND == "Web app (URL)" ]]; then
+    URL=$(gum input --prompt "URL> " --placeholder "https://example.com")
+    [[ -n $URL ]] || { echo "URL is required."; exit 1; }
+    ARGS=(--url "$URL")
+    NAME_SUGGEST=$(suggest_name_from_url "$URL")
+  else
+    LAUNCH=$(gum input --prompt "Launch command> " --placeholder "/usr/bin/some-app")
+    [[ -n $LAUNCH ]] || { echo "Launch command is required."; exit 1; }
+    ARGS=(--launch "$LAUNCH")
+    NAME_SUGGEST=$(suggest_name_from_launch "$LAUNCH")
+  fi
+
+  NAME=$(gum input --prompt "Name (identifies this overlay for later removal)> " --value "$NAME_SUGGEST")
+  [[ -n $NAME ]] || { echo "Name is required."; exit 1; }
+
+  KEY_SUGGEST=$(suggest_key_from_name "$NAME")
+  KEY=$(gum input --prompt "Keybinding> " --value "$KEY_SUGGEST" --placeholder "SUPER + SHIFT + X")
+  [[ -n $KEY ]] || { echo "Keybinding is required."; exit 1; }
+
+  echo
+  if [[ $KIND == "Web app (URL)" ]]; then
+    echo "Opening it once to figure out its window automatically — this can take a few seconds..."
+  else
+    echo "Launching it once to figure out its window automatically — this can take a few seconds..."
+  fi
+  "$INSTALL_SH" --name "$NAME" --key "$KEY" "${ARGS[@]}"
+else
+  "$INSTALL_SH" "$@"
+fi

@@ -22,7 +22,23 @@ independently installable/uninstallable.
 
 ## Install an app
 
-The easy way — for a webapp, just give it a URL:
+The easiest way — interactive, same idea as `omarchy-webapp-install`/
+`omarchy-webapp-remove`: run it bare and answer a few prompts.
+
+```bash
+omarchy-dropdown-install
+omarchy-dropdown-remove
+```
+
+`omarchy-dropdown-remove` with no name shows a picker of everything currently
+installed. Both also accept args directly (skipping the prompts) — see below.
+
+These are symlinked into `~/.local/bin` from `bin/` in this plugin, so they
+stay on your `PATH` and update in place if you edit the plugin.
+
+### The scriptable way
+
+For a webapp, just give it a URL:
 
 ```bash
 ~/.config/omarchy/plugins/ryanrs.dropdown-overlay/install.sh \

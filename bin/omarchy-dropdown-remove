@@ -1,0 +1,37 @@
+#!/usr/bin/env bash
+# omarchy:summary=Remove a dropdown overlay registered by ryanrs.dropdown-overlay
+# omarchy:args=[name]
+#
+# Interactive front-end for uninstall.sh, in the same spirit as
+# omarchy-webapp-remove: with no name given, pick one from a menu of what's
+# currently installed.
+
+set -euo pipefail
+
+SELF="$(readlink -f "${BASH_SOURCE[0]}")"
+PLUGIN_DIR="$(cd "$(dirname "$SELF")/.." && pwd)"
+UNINSTALL_SH="$PLUGIN_DIR/uninstall.sh"
+BINDINGS_LUA="$HOME/.config/hypr/bindings.lua"
+
+list_names() {
+  grep -oP -- '-- BEGIN ryanrs\.dropdown-overlay:\K\S+' "$BINDINGS_LUA" 2>/dev/null | sort -u
+}
+
+if [[ ${1:-} == -h || ${1:-} == --help ]]; then
+  exec "$UNINSTALL_SH" --help
+fi
+
+if (( $# == 0 )); then
+  mapfile -t NAMES < <(list_names)
+  if (( ${#NAMES[@]} == 0 )); then
+    echo "No dropdown overlays are installed."
+    exit 1
+  fi
+  NAME=$(omarchy-menu-select "Select dropdown overlay to remove" "${NAMES[@]}" -- --width 420)
+  [[ -n $NAME ]] || { echo "You must select an overlay to remove."; exit 1; }
+else
+  NAME="$*"
+fi
+
+"$UNINSTALL_SH" --name "$NAME"
+omarchy-notification-send -g "Dropdown overlay removed" "$NAME" 2>/dev/null || true
