@@ -1,5 +1,7 @@
 # ryanrs.dropdown-overlay
 
+ALll credit goes to https://github.com/crueber/omarchy-hermes-desktop-overlay
+
 A Quake-style pull-down HUD for any app or web app on [Omarchy](https://omarchy.org).
 Press a hotkey and the app drops down over whatever you're doing, floating
 and centered, dimming the background behind it. Press the same hotkey again
