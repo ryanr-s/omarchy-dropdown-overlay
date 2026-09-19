@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "id": "ryanrs.dropdown-overlay",
+  "name": "Dropdown Overlay",
+  "version": "1.0.0",
+  "author": "ryanrs",
+  "license": "MIT",
+  "description": "Quake-style pull-down HUD for any app: a hotkey drops a floating window over your current work in a dedicated special workspace. Generic, multi-app version of the Hermes/Tasks overlay pattern.",
+  "kinds": [
+    "service"
+  ],
+  "entryPoints": {
+    "service": "Service.qml"
+  }
+}

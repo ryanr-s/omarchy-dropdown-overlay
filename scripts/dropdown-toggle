@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+# Toggle any app as a pull-down HUD overlay (launch if not running, then
+# show/hide it on a dedicated special workspace).
+#
+# Pair with a window rule (written by install.sh) that pins $DROPDOWN_CLASS as
+# a centered, floating window on special workspace "$DROPDOWN_WORKSPACE".
+#
+# Usage: DROPDOWN_CLASS=... DROPDOWN_WORKSPACE=... DROPDOWN_LAUNCH=... dropdown-toggle
+
+set -euo pipefail
+
+APP_CLASS="${DROPDOWN_CLASS:?DROPDOWN_CLASS not set}"
+WORKSPACE="${DROPDOWN_WORKSPACE:?DROPDOWN_WORKSPACE not set}"
+LAUNCH_CMD="${DROPDOWN_LAUNCH:?DROPDOWN_LAUNCH not set}"
+
+window_exists() {
+  hyprctl clients -j | jq -e --arg c "$APP_CLASS" '.[] | select(.class == $c)' >/dev/null 2>&1
+}
+
+if ! window_exists; then
+  setsid bash -c "exec $LAUNCH_CMD" >/dev/null 2>&1 &
+  # Wait up to ~5s for the window to appear before toggling.
+  for _ in $(seq 1 50); do
+    window_exists && break
+    sleep 0.1
+  done
+fi
+
+hyprctl dispatch "hl.dsp.workspace.toggle_special('$WORKSPACE')"
