@@ -106,8 +106,23 @@ append_block() {
 DIM_LINE=""
 [[ $DIM -eq 1 ]] && DIM_LINE="    dim_around = true,"
 
+# Lua double-quoted strings only recognize a handful of backslash escapes, so
+# any literal backslash in a value we splice in (e.g. a class regex like
+# '^chrome-cloud\.example\.com$') must become \\ or Lua's parser rejects it.
+lua_escape() {
+  local s=$1
+  s=${s//\\/\\\\}
+  s=${s//\"/\\\"}
+  printf '%s' "$s"
+}
+
+LUA_APP_CLASS=$(lua_escape "$APP_CLASS")
+LUA_LABEL=$(lua_escape "$LABEL")
+LUA_LAUNCH_CMD=$(lua_escape "$LAUNCH_CMD")
+LUA_KEY=$(lua_escape "$KEY")
+
 RULE_BODY="o.window(
-  { class = \"$APP_CLASS\" },
+  { class = \"$LUA_APP_CLASS\" },
   {
     float = true,
     size = { \"(monitor_w*$WIDTH_FRAC)\", \"(monitor_h*$HEIGHT_FRAC)\" },
@@ -118,8 +133,8 @@ $DIM_LINE
   }
 )"
 
-BINDING_BODY="hl.unbind(\"$KEY\")
-o.bind(\"$KEY\", \"$LABEL\", \"env DROPDOWN_CLASS='$APP_CLASS' DROPDOWN_WORKSPACE='$WORKSPACE' DROPDOWN_LAUNCH='$LAUNCH_CMD' $TOGGLE_SCRIPT\")"
+BINDING_BODY="hl.unbind(\"$LUA_KEY\")
+o.bind(\"$LUA_KEY\", \"$LUA_LABEL\", \"env DROPDOWN_CLASS='$LUA_APP_CLASS' DROPDOWN_WORKSPACE='$WORKSPACE' DROPDOWN_LAUNCH='$LUA_LAUNCH_CMD' $TOGGLE_SCRIPT\")"
 
 remove_block "$HYPRLAND_LUA"
 append_block "$HYPRLAND_LUA" "$RULE_BODY"

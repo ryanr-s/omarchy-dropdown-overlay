@@ -5,6 +5,11 @@
 # Pair with a window rule (written by install.sh) that pins $DROPDOWN_CLASS as
 # a centered, floating window on special workspace "$DROPDOWN_WORKSPACE".
 #
+# DROPDOWN_CLASS is the same pattern used in the window rule (install.sh's
+# --class), which may be a plain class name or an anchored regex like
+# '^chrome-cloud\.example\.com__app-Default$' — so this matches it as a
+# regex against each open window's class, not by exact string equality.
+#
 # Usage: DROPDOWN_CLASS=... DROPDOWN_WORKSPACE=... DROPDOWN_LAUNCH=... dropdown-toggle
 
 set -euo pipefail
@@ -14,7 +19,7 @@ WORKSPACE="${DROPDOWN_WORKSPACE:?DROPDOWN_WORKSPACE not set}"
 LAUNCH_CMD="${DROPDOWN_LAUNCH:?DROPDOWN_LAUNCH not set}"
 
 window_exists() {
-  hyprctl clients -j | jq -e --arg c "$APP_CLASS" '.[] | select(.class == $c)' >/dev/null 2>&1
+  hyprctl clients -j | jq -r '.[].class' | grep -qP -- "$APP_CLASS"
 }
 
 if ! window_exists; then
