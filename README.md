@@ -22,17 +22,28 @@ independently installable/uninstallable.
 
 ## Install an app
 
+The easy way — for a webapp, just give it a URL:
+
 ```bash
 ~/.config/omarchy/plugins/ryanrs.dropdown-overlay/install.sh \
-  --name hermes --key "SUPER + SHIFT + H" --class Hermes \
-  --launch /usr/bin/hermes-desktop
-
-~/.config/omarchy/plugins/ryanrs.dropdown-overlay/install.sh \
   --name tasks --key "SUPER + SHIFT + T" \
-  --class '^chrome-cloud\.ryansaito\.com__apps_tasks_collections_week-Default$' \
-  --launch 'omarchy-launch-webapp https://cloud.ryansaito.com/apps/tasks/collections/week' \
-  --size 0.6x0.75
+  --url 'https://cloud.ryansaito.com/apps/tasks/collections/week' --size 0.6x0.75
 ```
+
+Or for any other app, just give it the launch command:
+
+```bash
+~/.config/omarchy/plugins/ryanrs.dropdown-overlay/install.sh \
+  --name hermes --key "SUPER + SHIFT + H" --launch /usr/bin/hermes-desktop
+```
+
+You don't need to figure out the window class yourself. If `--class` is
+omitted, `install.sh` launches the app, watches for the new window, works out
+its class automatically, and closes that detection window (a fresh, correctly
+styled one appears the first time you press the keybinding). This is the
+normal way to add an app — pass `--class` explicitly only if detection picks
+the wrong window (e.g. the app also opens some other transient window) or the
+app is already running and can't be launched a second time to detect.
 
 `install.sh` writes clearly marked, idempotent blocks into
 `~/.config/hypr/hyprland.lua` (window rule) and `~/.config/hypr/bindings.lua`
@@ -45,8 +56,9 @@ config. Re-running with the same `--name` replaces just that app's blocks.
 |------|----------|---------|---------|
 | `--name` | yes | — | Slug identifying this overlay; also used as the default special-workspace name |
 | `--key` | yes | — | Keybinding, e.g. `"SUPER + SHIFT + X"` |
-| `--class` | yes | — | Window class (or Lua-pattern regex) to match |
-| `--launch` | yes | — | Shell command to launch the app if it isn't running |
+| `--url` | one of `--url`/`--launch` | — | Webapp shortcut; equivalent to `--launch "omarchy-launch-webapp '<url>'"` |
+| `--launch` | one of `--url`/`--launch` | — | Shell command to launch the app if it isn't running |
+| `--class` | no | auto-detected | Window class (or regex) to match; skip this to have it detected for you |
 | `--workspace` | no | `--name` | Special workspace name |
 | `--size` | no | `0.75x0.75` | Fraction of monitor width x height, e.g. `0.6x0.75` |
 | `--opacity` | no | `0.96` | Window opacity |
